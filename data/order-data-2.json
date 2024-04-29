@@ -1,0 +1,26 @@
+{
+    "orders": [
+        {
+            "contact-info": {
+                "name": "Bruce Wayne",
+                "email": "notbatman123@gmail.com"
+            },
+            "order-info": {
+                "orderId": "3",
+                "itemId": "103",
+                "item-desc": "Phone",
+                "quantity": "1",
+                "price": "600"
+            }
+        },
+        {
+            "order-info": {
+                "orderId": "4",
+                "itemId": "104",
+                "item-desc": "Tablet",
+                "quantity": "1",
+                "price": "150"
+            }
+        }
+    ]
+}

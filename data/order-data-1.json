@@ -1,0 +1,30 @@
+{
+    "orders": [
+        {
+            "contact-info": {
+                "name": "Foo Bar",
+                "email": "foobar@yahoo.com"
+            },
+            "order-info": {
+                "orderId": "1",
+                "itemId": "101",
+                "item-desc": "TV",
+                "quantity": "1",
+                "price": "1000"
+            }
+        },
+        {
+            "contact-info": {
+                "name": "Tom Carter",
+                "email": "tomcarter@yahoo.com"
+            },
+            "order-info": {
+                "orderId": "2",
+                "itemId": "102",
+                "item-desc": "Computer",
+                "quantity": "2",
+                "price": "2500"
+            }
+        }
+    ]
+}

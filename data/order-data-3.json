@@ -1,0 +1,30 @@
+{
+    "orders": [
+        {
+            "contact-info": {
+                "name": "Test Customer",
+                "email": "testcustomer@microsoft.com"
+            },
+            "order-info": {
+                "orderId": "5",
+                "itemId": "105",
+                "item-desc": "Tablet",
+                "quantity": "1",
+                "price": "150"
+            }
+        },
+        {
+            "contact-info": {
+                "name": "Test Customer 2",
+                "email": "testcustomer2@microsoft.com"
+            },
+            "order-info": {
+                "orderId": "6",
+                "itemId": "106",
+                "item-desc": "Watch",
+                "quantity": "1",
+                "price": "400"
+            }
+        }
+    ]
+}

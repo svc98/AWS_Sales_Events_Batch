@@ -1,0 +1,117 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "GetObject",
+  "States": {
+    "GetObject": {
+      "Type": "Task",
+      "Parameters": {
+        "Bucket.$": "$.detail.bucket.name",
+        "Key.$": "$.detail.object.key"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "ResultSelector": {
+        "detail.$": "States.StringToJson($.Body)"
+      },
+      "Next": "Map"
+    },
+    "Map": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Validate Order",
+        "States": {
+          "Validate Order": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "Payload.$": "$",
+              "FunctionName": "arn:aws:lambda:us-east-2:767397796862:function:Order_Verification:$LATEST"
+            },
+            "ResultSelector": {
+              "contact-info.$": "$.Payload.contact-info",
+              "order-info.$": "$.Payload.order-info"
+            },
+            "Next": "Insert into DB Table",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed"
+                ],
+                "Next": "Send to DLQ",
+                "Comment": "Iterator Failed",
+                "ResultPath": null
+              }
+            ]
+          },
+          "Insert into DB Table": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Parameters": {
+              "TableName": "Sales-Orders",
+              "Item": {
+                "OrderId": {
+                  "S.$": "$.order-info.orderId"
+                },
+                "ItemId": {
+                  "S.$": "$.order-info.itemId"
+                },
+                "Quanity": {
+                  "S.$": "$.order-info.quantity"
+                },
+                "Price": {
+                  "S.$": "$.order-info.price"
+                },
+                "Contact_Name": {
+                  "S.$": "$.contact-info.name"
+                },
+                "Contact_Email": {
+                  "S.$": "$.contact-info.email"
+                }
+              }
+            },
+            "End": true,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed"
+                ],
+                "BackoffRate": 2,
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "Comment": "In case task failed due to connectivity"
+              }
+            ]
+          },
+          "Send to DLQ": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sqs:sendMessage",
+            "Parameters": {
+              "QueueUrl": "https://sqs.us-east-2.amazonaws.com/767397796862/SalesOrders-DLQ",
+              "MessageBody.$": "$"
+            },
+            "ResultPath": null,
+            "Next": "Alert Admin of Error"
+          },
+          "Alert Admin of Error": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+              "TopicArn": "arn:aws:sns:us-east-2:767397796862:SalesOrders_ErrorNotification",
+              "Message": {
+                "OrderID.$": "$.order-info.orderId",
+                "Message": "Error found not inserted into DynamoDB Table"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true,
+      "InputPath": "$.detail",
+      "ItemsPath": "$.orders",
+      "MaxConcurrency": 5
+    }
+  }
+}
